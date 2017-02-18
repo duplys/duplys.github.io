@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Working Title: Chinese Remainder Theorem"
-date:   2016-09-16 19:32:55 +0100
+date:   2016-12-31 19:32:55 +0100
 categories: public-key crypto math
 ---
 
@@ -9,30 +9,41 @@ categories: public-key crypto math
   src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
 </script>
 
-* In this post, we'll look at the Chinese Remainder Theorem, an interesting mathematical tool in its own right and a 'work-horse' in the context of modern day public-key cryptography.
+In this post, we'll look at the Chinese Remainder Theorem (CRT), an interesting mathematical tool in its own right and a 'work-horse' in the context of public-key cryptography. We'll look at what CRT exactly is, how it is used in modern cryptography, and what benefits it offers. If you are a professional cryptographer, you obviously know these things very well---stop reading here. To explain the CRT, I will make some simplifying assumptions and use some 'school book' crypto. 
 
-* In their 2003 book "Practical Cryptography", Ferguson and Schneier open the RSA Chapter by claiming RSA to be probably the most widely used, and certainly the best known, public-key cryptosystem in the world. Trying to check whether this proposition is still valid in 2016, I could only find one reliable reference of a newer date. In the 2009 book "Understanding Cryptography: A Textbook for Students and Practitioners", Paar and Pelzl postulate that RSA is---even at that point in time---still the most widely used asymmetric cryptography scheme, even though elliptic curves are gaining ground for good reasons (see e.g. this [nice discussion on elliptic curve advantages over RSA](http://crypto.stackexchange.com/questions/1190/why-is-elliptic-curve-cryptography-not-widely-used-compared-to-rsa) on Cryptography Stack Exchange). Nevertheless, RSA, which was [first introduced by Riverst, Shamir, and Adleman in 1977](http://people.csail.mit.edu/rivest/Rsapaper.pdf), has stood the test of almost 40 years of attacks, and while I wouldn't go as far as to claim that RSA is here to stay, I think it is reasonable to assume---especially considering the (then) legacy systems---that RSA will remain widely used in real-world crypto applications at least for the next 10 years or so.
+In their 2003 book "Practical Cryptography", Ferguson and Schneier open the RSA Chapter by claiming RSA to be probably the most widely used, and certainly the best known, public-key crypto system in the world. Trying to check whether this proposition is still valid in 2016, I could only find one reliable reference of a newer date. In the 2009 book "Understanding Cryptography: A Textbook for Students and Practitioners", Paar and Pelzl postulate that RSA is---even at that point in time---still the most widely used asymmetric cryptography scheme, even though elliptic curves are gaining ground for good reasons (see e.g. this [nice discussion on elliptic curve advantages over RSA](http://crypto.stackexchange.com/questions/1190/why-is-elliptic-curve-cryptography-not-widely-used-compared-to-rsa) on Cryptography Stack Exchange). 
 
-* While this post is on CRT and _not_ RSA, to understand why (and where) CRT is relevant in modern public-key cryptography, it is necessary to discuss the basics of the RSA crypto system first.
+While elliptic curves offer many advantages, in particular performance related ones, the RSA crypto system [introduced by Riverst, Shamir, and Adleman in 1977](http://people.csail.mit.edu/rivest/Rsapaper.pdf) has stood the test of almost 40 years of attacks, and while I wouldn't go as far as to claim that RSA is here to stay, I think it is reasonable to assume---especially considering the (then) legacy systems---that RSA will remain widely used in real-world cryptographic applications and appliances for at least the next decade or so.
 
-* While this will not really be important for our further discussion, I would like to emphasise that we'll only look at the mathematical/number theoretical basics of the RSA crypto system. Be aware of the fact that applying/using RSA in the real world securely implies that you have to do a number of additional things like e.g. padding. In this post, I will **not** cover these topics, so please be aware of the fact that any calculations presented in the following are just examples to elaborate the working principle and the advantages of CRT when used in combination with RSA. In particular, you should never use RSA like this (e.g. without padding, etc.). 
+Nevertheless, as the title of this post implies, we want to talk about CRT and not RSA. So why this lengthy introduction? Well, to understand why (and where) CRT is relevant in public-key cryptography, it is necessary to discuss the fundamentals of the RSA crypto system first. To make things a bit simpler, we will only look at the number theoretical basics of RSA. For a real world use, you'd have to do a number of additional things like padding that I will not cover in this post. The calculations shown here are just 'school book' examples to elaborate the working principle and the advantages of CRT when used in combination with RSA.
 
-* Modern textbooks on cryptography contain well formalised definitions of the RSA system and it's properties. Since I would like to keep this part compact, we are going to refrain to the somewhat simpler RSA description from the original paper.
+Modern textbooks on cryptography contain well formalized definitions of the RSA crypto system and its properties. But since we want to keep things simple, we're going to refrain to the more straightforward definition from the original paper.
 
-* RSA is based on a trapdoor one-way function. Roughly speaking, RSA encrypts a message by: 
-1. representing the message as a number $$M$$,
-2. raising $$M$$ to a publicly specified power $$e$$, and finally,
-3. taking the remainder when the result is divided by the publicly specified number $$n$$ that is a product of two large secret prime numbers $$p$$ and $$q$$. 
+The RSA crypto system is based on a [trapdoor one-way function](https://en.wikipedia.org/wiki/Trapdoor_function). It is a function that is easy to compute in one direction, but difficult to compute in the opposite direction---in mathematical parlance: difficult to invert---without special information (the "trapdoor"). Roughly speaking, RSA encrypts a message by: 
 
-* The decryption procedure is similar to the encryption, the only difference being that the secret power $$d$$ is used, where $$e\cdot d \equiv 1 \pmod{mod(p−1)\cdot (q−1)}$$. 
+1. representing the message as a number $$m$$,
+2. raising $$m$$ to a publicly specified power $$e$$,
+3. taking the _remainder_ when the result is divided by the publicly specified number $$n=p\cdot q$$ that is a product of two large secret prime numbers $$p$$ and $$q$$. 
 
-* The security of the RSA system rests on the difficulty of factoring the published divisor, $$n$$. This computational problem, which also happens to be a (trap-door) one-way function, is also known as the _integer factorization problem_: it is computationally easy to multiply two large primes (in fact, this can be done with paper and pencil), but it is computationally very hard to factor the resulting product into the original primes (assuming you don't know these primes beforehand). 
+In other words, the message $$m$$ is encrypted to the ciphertext $$c$$ by computing:
 
-* Even for the legitimate user, computing RSA in the straight forward manner, i.e. doing computations modulo the composite number $$n$$, is computationally expensive. For this reason, most real-world RSA implementations use a mathematical tool called the _Chinese Remainder Theorem_ (CRT) to speed up the RSA computation. CRT is named so because [the earliest known statement of the theorem](https://en.wikipedia.org/wiki/Chinese_remainder_theorem#History) appears in a book "The Mathematical Classic of Sunzi"  written by Sunzi during the 5th century in China. While Sunzi's actual identity is unknown, it is an [established fact](https://en.wikipedia.org/wiki/The_Mathematical_Classic_of_Sunzi) that he lived much later than the author of _The Art of War_ Sun Tzu.
+$$
+c = m^e \pmod{n}
+$$
 
-* Most textbooks on cryptography introduce CRT as a theorem which states that, for any integer $$n$$, if you know the remainders of the division of $$n$$ by several integers $$n_0,n_1,\ldots ,n_k$$, you can uniquely determine the remainder of the division of $$n$$ by the **product** of these integers---if the divisors  $$n_0,n_1,\ldots, n_k$$ are pairwise co-prime, that is. "Pairwise co-prime" is just another way of saying that any pair of integers from that set $$\{n_0,n_1,\ldots, n_k\}$$ doesn't have any greatest common divisor other than 1.
+where the pair $$(e,n)$$ is the public key. The decryption procedure is similar to the encryption, the only difference being that the private key---the secret power $$d$$---is used to decrypt the ciphertext. To decrypt the message, the recipient computes:
 
-* In other words, if the $$n_i$$ are pairwise co-prime, and if $$a_1, \ldots , a_k$$ are any integers, then there exists an integer $$x$$ such that
+$$
+m = c^d \pmod{n}
+$$ 
+
+where $$d$$ is such that $$e\cdot d \equiv 1 \pmod{mod(p−1)\cdot (q−1)}$$.
+ 
+Security of the RSA system rests on the difficulty of factoring the published divisor $$n$$. This computational problem---which also happens to be a (trap-door) one-way function---is known as the _integer factorization problem_. The integer factorization problem states that it is computationally easy to multiply two large primes (in fact, this can be done with paper and pencil), but it is computationally very hard to factor the resulting product into the original primes (assuming you don't know these primes beforehand). 
+
+Nevertheless, in **practice** computing RSA in a straight forward manner, i.e. doing computations modulo the composite number $$n$$, is computationally expensive even for the legitimate party. For this reason, most real-world RSA implementations use a mathematical tool called the _Chinese Remainder Theorem_ (CRT) to speed up the RSA calculation. CRT is named so because [the earliest known statement of the theorem](https://en.wikipedia.org/wiki/Chinese_remainder_theorem#History) appears in a book "The Mathematical Classic of Sunzi"  written by Sunzi during the 5th century in China. While Sunzi's actual identity is unknown, it is an [established fact](https://en.wikipedia.org/wiki/The_Mathematical_Classic_of_Sunzi) that he lived much later than the author of _The Art of War_ Sun Tzu.
+
+Most textbooks on cryptography introduce CRT as a theorem which states that for any integer $$n$$, if you know the remainders of the division of $$n$$ by several integers $$n_0,n_1,\ldots ,n_k$$, you can uniquely determine the remainder of the division of $$n$$ by the **product** of these integers---if the divisors  $$n_0,n_1,\ldots, n_k$$ are pairwise co-prime, that is. "Pairwise co-prime" is just another way of saying that any pair of integers from that set $$\{n_0,n_1,\ldots, n_k\}$$ doesn't have any greatest common divisor other than 1. That is---more formally expressed---if the $$n_i$$ are pairwise co-prime and $$a_1, \ldots , a_k$$ are any integers, then there exists an integer $$x$$ such that:
 
 $$
 \begin{aligned}
@@ -42,13 +53,13 @@ x\equiv a_{k}&{\pmod {n_{k}}} \\
 \end{aligned}
 $$
 
-and any two such $$x$$ are congruent modulo $$N$$, where $$N=n_1\cdot n_2 \cdot \ldots \cdot n_k$$ is the **product** of the $$n_i$$. As an example, if the number $$x$$ is congruent to the number $$a$$ modulo the product $$pq$$ --- i.e. $$x \equiv a {\pmod {pq}}$$ --- then $$x$$ is congruent to $$a$$ both modulo $$p$$ as well as modulo $$q$$. That is, it holds that $$x \equiv a \pmod q$$ and $$x \equiv a \pmod p$$.
+As an example, if a number $$x$$ is congruent to the number $$a$$ modulo the product $$pq$$ --- i.e. $$x \equiv a {\pmod {pq}}$$ --- then $$x$$ is congruent both to $$a$$ modulo $$p$$ as well as to $$a$$ modulo $$q$$, i.e. it holds that $$x \equiv a \pmod q$$ and $$x \equiv a \pmod p$$.
 
-At this point, you can already start to see the connection between CRT and the RSA crypto system. You only need to consider that in RSA, the computations for both encryption and decryption are performed modulo the composite integer $$N=p \cdot q$$. By definition of RSA, $$N$$ is nothing but a product of two primes $$p$$ and $$q$$, so that these two numbers are naturally also pairwise co-prime and, hence, meet the "requirements" for CRT.
+At this point you can already start to see the connection between CRT and the RSA crypto system. To understand this you only need to consider that in RSA, the computations for both encryption and decryption are performed modulo the composite integer $$N=p \cdot q$$. By definition of RSA, $$N$$ is nothing but a product of two primes $$p$$ and $$q$$ so that these two numbers are naturally also pairwise co-prime and, hence, meet the "requirements" for CRT.
 
-* Instead of thinking about CRT as a theorem about a specific property of integers, one might think of CRT simply as a different representation of a number, specifically a representation  modulo a composite integer $$n=p\cdot q$$. 
+Instead of thinking about CRT as a theorem about a specific property of integers, you can think of CRT simply as a different representation of a number, or more precisely, a representation of that number modulo a composite integer $$n=p\cdot q$$. 
 
-* For each number $$x$$ modulo $$n$$ --- that is, an $$x\{\in 0,1,2,3, \ldots , n-1\}$$ --- you can compute the pair $$(x\pmod{p}, x\pmod{q})$$. The CRT states that you can reconstruct $$x$$ if you know $$(x\pmod{p}, x\pmod{q})$$ because for any given pair $$(x\pmod{p}, x\pmod{q})$$ there is at most one solution for $$x$$.
+For each number $$x$$ modulo $$n$$, you can compute the pair $$(x\pmod{p}, x\pmod{q})$$. CRT states that you can reconstruct $$x$$ if you know $$(x\pmod{p}, x\pmod{q})$$, because for any given pair $$(x\pmod{p}, x\pmod{q})$$ there is at most one solution for $$x$$.
 
 
 * Let's play around with some toy RSA parameters. Bla bla bla. You can find the code here. Here's the output of the code (TODO: include a link to a github gist or a git repository)
@@ -137,7 +148,7 @@ print("[*] m = %d, m_d = %d, m_g = %d" % (m, m_d, m_g))
 
 * The only cost of using the CRT is the additional software complexity and the necessary conversions. If you do more than a few multiplications in one computation, the overhead of these conversions is worthwhile. Most textbooks only talk about the CRT as an implementation technique for RSA. We find that the CRT representation makes it much easier to understand the RSA system.
 
-# References
+# Picks & References
 * [Youtube Video on RSA and CRT by Jeff Suzuki](https://www.youtube.com/watch?v=6ytuvahX1tQ)
 * Practical crypto book
 * wikipedia article
