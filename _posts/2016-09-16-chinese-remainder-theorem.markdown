@@ -55,14 +55,11 @@ $$
 
 As an example, if a number $$x$$ is congruent to the number $$a$$ modulo the product $$pq$$ --- i.e. $$x \equiv a {\pmod {pq}}$$ --- then $$x$$ is congruent both to $$a$$ modulo $$p$$ as well as to $$a$$ modulo $$q$$, i.e. it holds that $$x \equiv a \pmod q$$ and $$x \equiv a \pmod p$$.
 
-At this point you can already start to see the connection between CRT and the RSA crypto system. To understand this you only need to consider that in RSA, the computations for both encryption and decryption are performed modulo the composite integer $$N=p \cdot q$$. By definition of RSA, $$N$$ is nothing but a product of two primes $$p$$ and $$q$$ so that these two numbers are naturally also pairwise co-prime and, hence, meet the "requirements" for CRT.
+At this point you can already start to see the connection between CRT and the RSA crypto system. All you have to do is to consider that in RSA, the computations for both encryption and decryption are performed modulo the composite integer $$N=p \cdot q$$. By definition of RSA, $$N$$ is nothing but a product of two primes $$p$$ and $$q$$ so that these two numbers are naturally also pairwise co-prime and, hence, meet the "requirements" for CRT.
 
-Instead of thinking about CRT as a theorem about a specific property of integers, you can think of CRT simply as a different representation of a number, or more precisely, a representation of that number modulo a composite integer $$n=p\cdot q$$. 
+Thus, instead of thinking about CRT as a theorem about a specific property of integers, you can think of CRT simply as a different representation of a number $$x$$, or more precisely, a representation of $$x$$ modulo a composite integer $$n=p\cdot q$$. For each number $$x$$ modulo such $$n=p\cdot q$$, you can represent $$x$$ by the pair $$(x\pmod{p}, x\pmod{q})$$. CRT states that you can reconstruct $$x$$ if you know $$(x\pmod{p}, x\pmod{q})$$, because for any given pair $$(x\pmod{p}, x\pmod{q})$$ there is at most one solution for $$x$$.
 
-For each number $$x$$ modulo $$n$$, you can compute the pair $$(x\pmod{p}, x\pmod{q})$$. CRT states that you can reconstruct $$x$$ if you know $$(x\pmod{p}, x\pmod{q})$$, because for any given pair $$(x\pmod{p}, x\pmod{q})$$ there is at most one solution for $$x$$.
-
-
-* Let's play around with some toy RSA parameters. Bla bla bla. You can find the code here. Here's the output of the code (TODO: include a link to a github gist or a git repository)
+To convince ourselves that CRT is indeed capable of speeding up the computations modulo $$n$$ (where $$n=p\cdot q$$ and $$p$$, $$q$$ are co-prime integers), we can experiment with some toy RSA parameters. I wrote a small Python script and uploaded it to [GitHub's gist](https://gist.github.com/duplys/c8d816802acc9e46eb4a5c5f1aba60e6) in case you want to reproduce the experiment on your machine:
 
 ```
 $ python rsa_demo.py
@@ -77,49 +74,49 @@ $ python rsa_demo.py
 [*] test: c = 1853**e % n = 396097**d % n = m_d = 1853
 ```
 
-* Let's focus on the decryption now (since it has a higher execution time here). The naive way to decrypt the ciphertext is to compute $$c=e^d {\pmod{n}}$$. We can measure the execution time of the corresponding code using the command line interface of the Python's `timeit` module. It turns out that the naive calculation needs about 1.2 seconds:
+To see the merits of using CRT, we will now focus on RSA's decryption operation (since it has a higher execution time than encryption). With RSA, the naive way to decrypt a ciphertext is to compute $$c=e^d {\pmod{n}}$$. We can measure the execution time of the corresponding code using the command line interface of the Python's `timeit` module. On my machine with 4 GB memory and an Intel Core i7 CPU running at 2.2 GHz (OS X 10.11.6 operating system), the naive calculation needs around 1.1 seconds:
 
 ```
 $ python -m timeit -s 'c = 396097; d = 369353; n = 484391'  'm = (c**d) % n'
-10 loops, best of 3: 1.12 sec per loop
+10 loops, best of 3: 1.11 sec per loop
 ``` 
 
-* What about applying the CRT to our calculations? Can we gain anything---in terms of the execution time---if we compute $$c^d{\pmod{p}}$$ and $$c^d{\pmod{q}}$$ instead of computing $$c=e^d {\pmod{n}}$$? It turns out that the result is rather the same, amounting to only slightly less than 1.2 seconds:
+What happens if we apply CRT to our calculations? Can we gain anything---in terms of the execution time---if we compute $$c^d{\pmod{p}}$$ and $$c^d{\pmod{q}}$$ instead of computing $$c=e^d {\pmod{n}}$$? It turns out that the resulting execution time is almost identical, amounting to slightly less than 1.2 seconds:
 
 ```
 $ python -m timeit -s 'c = 396097; d = 369353; p = 691'  '(c**d) % p'
 10 loops, best of 3: 1.11 sec per loop
 $ python -m timeit -s 'c = 396097; d = 369353; q = 701'  '(q**d) % q'
-10 loops, best of 3: 382 msec per loop
+10 loops, best of 3: 381 msec per loop
 ```
 
-* Is there a way to speed up this, in particular by leveraging the CRT properties? Well, since $$p,q$$ are prime, we know that $$c^{p-1}\equiv 1 {\pmod{p}}$$ and $$c^{q-1}\equiv 1 {\pmod{q}}$$. So **at worst** we'll have to compute $$c^{p-1},c^{q-1}$$ instead of a much higher power $$c^d$$, meaning that we can the base $$c$$ by $$p$$ and $$q$$, respectively. Using this reduction already gives us a speedup of about a factor of 4, as it turns out:
+Hmmm, that obviously didn't help much. Can we somehow speed this up, in particular by leveraging the CRT properties and some basic number theory? Luckily, the answer is "yes". Before performing the exponentiation, we can reduce the base $$c$$ by $$p$$ and $$q$$, respectively. Using this reduction already gives us a speedup of about a factor of 4, as it turns out:
 
 ```
 $ python -m timeit -s 'c = 396097; d = 369353; p = 691'  '((c%p)**d) % p'
-10 loops, best of 3: 233 msec per loop
+10 loops, best of 3: 230 msec per loop
 $ python -m timeit -s 'c = 396097; d = 369353; q = 701'  '((c%q)**d) % q'
-100 loops, best of 3: 10.2 msec per loop
+100 loops, best of 3: 9.94 msec per loop
 ```
 
-* But we can do even better than that! Since $$p$$ and $$q$$ are primes and we know that $$c^{p-1}\equiv 1 {\pmod{p}}$$ and $$c^{q-1}\equiv 1 {\pmod{q}}$$, we can reduce the exponents. For instance, if we have $$x\equiv c^d {\pmod{p}}$$, then we can express this as $$x\equiv c^{(p-1)\times t + r=d} {\pmod{p}}$$ or $$x\equiv c^{(p-1)\times t}c^r {\pmod{p}}$$ because $$c^{(p-1)\times t} {\pmod{p}}$$ is 1. Likewise, we can apply the same mathematical trick for $$x\equiv c^d {\pmod{q}}$$ to reduce the exponent here. Now this gives us even more speed up:
+But we can do even better than that! Since $$p$$ and $$q$$ are primes and we know that $$c^{p-1}\equiv 1 {\pmod{p}}$$ and $$c^{q-1}\equiv 1 {\pmod{q}}$$, we can reduce the exponents. For instance, if we have $$x\equiv c^d {\pmod{p}}$$, then we can express this as $$x\equiv c^{(p-1)\times t + r=d} {\pmod{p}}$$ or $$x\equiv c^{(p-1)\times t}c^r {\pmod{p}}$$ because $$c^{(p-1)\times t} {\pmod{p}}$$ is 1. Likewise, we can apply the same mathematical trick for $$x\equiv c^d {\pmod{q}}$$ to reduce the exponent here. Reducing the exponents (which are now denoted by `dP` and `dQ`, respectively) gives us even more speed up (note the difference 'usec' (microseconds) vs 'msec' (milliseconds)):
 
 ```
 $ python -m timeit -s 'c = 396097; dP = 203; p = 691'  '((c%p)**dP) % p'
-100000 loops, best of 3: 3.55 usec per loop
+100000 loops, best of 3: 3.56 usec per loop
 $ python -m timeit -s 'c = 396097; dQ = 453; q = 701'  '((c%q)**dQ) % q'
 100000 loops, best of 3: 4.89 usec per loop
 ```
 
-* So in total, rather than spending 1.2 seconds to compute $$c=e^d {\pmod{n}}$$, we need only roughly 9 **micro**seconds (!) to compute the above expressions $$c {\pmod{p}}^{dP} {\pmod{p}}$$ and $$c {\pmod{q}}^{dQ} {\pmod{q}}$$. It turns out that $$a_1 = c {\pmod{p}}^{dP} {\pmod{p}} = 471$$ and $$a_2 = c {\pmod{q}}^{dQ} {\pmod{q}} = 451$$.
+So in total, rather than spending 1.2 seconds to compute $$m=c^d {\pmod{n}}$$ in a naive way, we need only roughly 9 **micro**seconds (!) to compute the above expressions $$(c {\pmod{p}})^{dP} {\pmod{p}}$$ and $$(c {\pmod{q}})^{dQ} {\pmod{q}}$$. We get $$a_1 = (c {\pmod{p}})^{dP} {\pmod{p}} = 471$$ and $$a_2 = (c {\pmod{q}})^{dQ} {\pmod{q}} = 451$$.
 
-* The last step for actually calculating the message $$m$$ is to reconstruct it from the values $$a_1$$ and $$a_2$. Without going in too much mathematical details (and explaining why this is the case), the easiest way to do this is based on the so-called _Garner's formula_:
+The last step for actually calculating the message $$m$$ is to reconstruct it from the values $$a_1, a_2$$. Without going into gory details (and explaining why this is the case), the easiest way to do this is based on the so-called _Garner's formula_:
 
 $$
-x = (((a_1-a_2)(q^{-1}\pmod{p})) \pmod{p})\cdot q + b.
+x = (((a_1-a_2)(q^{-1}\pmod{p})) \pmod{p})\cdot q + b
 $$
 
-or, expressed in our Python code, as:
+or, expressed in Python code, by computing:
 
 ```
 dP = d % (p-1)
@@ -136,7 +133,7 @@ m_g = ( ( ( (a1-a2)*qInv ) % p) * q ) + a2
 print("[*] m = %d, m_d = %d, m_g = %d" % (m, m_d, m_g))
 ```
 
-* which gives us:
+This gives us:
 
 ```
 [*] a1= 471, a2 = 451
@@ -144,15 +141,39 @@ print("[*] m = %d, m_d = %d, m_g = %d" % (m, m_d, m_g))
 [*] m = 1853, m_d = 1853, m_g = 1853
 ```
 
-* To summarise, assuming we have to compute exponentiations for $$ x^s \pmod{n} $$, the exponent $$s$$ can be up to $$k$$ bits long. This requires about $$3k/2$$ multiplications modulo $$n$$. Using the CRT representation, each multiplication is less work, but there is also a second saving. We want to compute $$(x^s\pmod{p}, x^s\pmod{q})$$. When computing module $$p$$, we can reduce the exponent $$s$$ modulo $$(p-1)$$, and similarly modulo $$q$$. So we only have to compute $$(x^{s\pmod{p-1}}\pmod{p}, x^{s\pmod{q-1}}\pmod{q})$$. Each of the exponents is only $$k/2$$ bits long and requires only $$3k/4$$ multiplications. Instead of $$3k/2$$ multiplications modulo $$n$$, we now do $$2\cdot 3k/4 = 3k/2$$ multiplications modulo one of the primes. This saves a factor 3-4 in computing time in a typical implementation.
+where the CRT-based decryption `m_g` is identical to our initial message 1853. And that should convince you that our CRT-based computation is mathematically correct, i.e. that it yields the same result as the naive calculation $$m = c^d \pmod{n}$$. 
 
-* The only cost of using the CRT is the additional software complexity and the necessary conversions. If you do more than a few multiplications in one computation, the overhead of these conversions is worthwhile. Most textbooks only talk about the CRT as an implementation technique for RSA. We find that the CRT representation makes it much easier to understand the RSA system.
+The only cost of using the CRT---besides the additional software complexity---is the execution time for the necessary conversions, in particular the conversion of $$a_1,a_2$$ into the original message $$m$$ (denoted as `m_g` in our Python code). So let's perform one last measurement to determine the execution time for the conversion:
 
-# Picks & References
+```
+$ python -m timeit -s '
+def egcd(a, b):
+    if a == 0:
+        return (b, 0, 1)
+    else:
+        g, x, y = egcd(b % a, a)
+        return (g, y - (b // a) * x, x)
+
+
+def mulinv(b, n):
+    g, x, _ = egcd(b, n)
+    if g == 1:
+        return x % n
+
+
+qInv = mulinv(701, 691); m_g = ( ( ( (481-142)*qInv ) % 691) * 701 ) + 142'
+100000000 loops, best of 3: 0.0179 usec per loop
+```
+
+As you can see, the conversion overhead is only about 0.02 microseconds. So thanks to CRT, we were able to speed up the computation of our particular example (i.e. our toy RSA parameters) from 1.2 seconds to less than 10 microseconds. So our speed up (for _this_ example) turns out to be $$1.2 \textrm{ sec} / 1 * 10^{-5} \textrm{ sec} = 1.2 * 10^{5} = 120,000$$.
+
+While the above speed up looks very impressive, it very much depends on the specific parameters we chose. For larger values of $$p, q, d, m, \ldots$$ the speed up will be significantly smaller. Yet, as a rule of thumb, if you do more than a few multiplications in one computation, the overhead of these conversions is worthwhile.
+
+
+# References
 * [Youtube Video on RSA and CRT by Jeff Suzuki](https://www.youtube.com/watch?v=6ytuvahX1tQ)
-* Practical crypto book
-* wikipedia article
-* http://www.di-mgt.com.au/crt_rsa.html
-* https://docs.python.org/2/library/timeit.html
-* https://en.wikipedia.org/wiki/List_of_prime_numbers
-* 
+* [Niels Ferguson and Bruce Schneier "Practical Cryptography"](https://www.schneier.com/books/practical_cryptography/)
+* [Wikipedia article on CRT](https://en.wikipedia.org/wiki/Chinese_remainder_theorem)
+* [Useful explanation of RSA](http://www.di-mgt.com.au/crt_rsa.html)
+* [Python documentation on `timeit`](https://docs.python.org/2/library/timeit.html)
+* [Wikipedia's list of prime numbers](https://en.wikipedia.org/wiki/List_of_prime_numbers)
