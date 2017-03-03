@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Working Title: Chinese Remainder Theorem"
+title:  "Chinese Remainder Theorem for Fun and Profit"
 date:   2016-12-31 19:32:55 +0100
 categories: public-key crypto math
 ---
