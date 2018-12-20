@@ -2,7 +2,7 @@
 layout: post
 title:  "Feinstaub!"
 date:   2018-07-08 21:46:03 +0200
-categories: raspi python physics
+categories: raspi python physics particulates feinstaub atmospheric aerosol particles diesel dieselgate
 ---
 
 # Inspiration
@@ -11,6 +11,8 @@ German Linux Magazin, Issue 06/18, page 20, "Feinstaubmessung mit dem Raspberry-
 
 # Feinstaub
 https://en.wikipedia.org/wiki/Particulates
+
+Explain what Feinstaub means in German (fein (fine) and staub (dust)). ...
 
 Atmospheric aerosol particles, also known as atmospheric particulate matter, particulate matter (PM), particulates, or suspended particulate matter (SPM) are microscopic solid or liquid matter suspended in Earth's atmosphere. The term aerosol commonly refers to the particulate/air mixture, as opposed to the particulate matter alone.[3] Sources of particulate matter can be natural or anthropogenic. They have impacts on climate and precipitation that adversely affect human health.
 
@@ -274,8 +276,6 @@ $ gnuplot plot.gp
 # A security twist
 
 ## Random.org
-
-
 What's this fuss about true randomness?
 
 Perhaps you have wondered how predictable machines like computers can generate randomness. In reality, most random numbers used in computer programs are pseudo-random, which means they are generated in a predictable fashion using a mathematical formula. This is fine for many purposes, but it may not be random in the way you expect if you're used to dice rolls and lottery drawings.
