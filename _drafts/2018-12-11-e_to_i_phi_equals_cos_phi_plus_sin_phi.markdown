@@ -1,29 +1,25 @@
 ---
 layout: post
-title:  "Particulate Matter!"
+title:  "Feinstaub!"
 date:   2018-07-08 21:46:03 +0200
-categories: raspi python physics particulates feinstaub atmospheric aerosol particles diesel dieselgate
+categories: raspi python physics
 ---
 
 # Inspiration
-My inspiration to experiment with the Nova SDS-011 sensor to measure particulate matter came after reading the article "Feinstaubmessung mit dem Raspberry-Pi" by Charly K\"uhnast in the german Linux Magazine, issue 06/18 (page 20). 
+German Linux Magazin, Issue 06/18, page 20, "Feinstaubmessung mit dem Raspberry-Pi" by Charly K\"uhnast. 
 
 
-# Particulate Matter
-Particulate matter (PM), also known as particle pollution, is a complex mixture of extremely small particles and liquid droplets that get into the air [2]. It is the sum of all solid and liquid particles suspended in air many of which are hazardous [3]. This complex mixture includes both organic and inorganic particles, such as dust, pollen, soot, smoke, and liquid droplets. These particles vary greatly in size, composition, and origin [3], and have impact on climate and and the human health [1].
-
-Particle pollution includes inhalable particles with a diameter of $$\leq$$ 10 micrometers (PM10), and fine inhalable particles with a diameters of $$\leq$$ 2.5 micrometers (PM2.5) [3]. 
-Explain what Feinstaub means in German (fein (fine) and staub (dust)). ...
+# Feinstaub
+https://en.wikipedia.org/wiki/Particulates
 
 Atmospheric aerosol particles, also known as atmospheric particulate matter, particulate matter (PM), particulates, or suspended particulate matter (SPM) are microscopic solid or liquid matter suspended in Earth's atmosphere. The term aerosol commonly refers to the particulate/air mixture, as opposed to the particulate matter alone.[3] Sources of particulate matter can be natural or anthropogenic. They have impacts on climate and precipitation that adversely affect human health.
 
-According to this [Wikipedia article](https://en.wikipedia.org/wiki/Particulates), the [International Agency for Research on Cancer](http://www.iarc.fr) and the [World Health Organization](http://www.who.int) designate airborne particulates a Group 1 carcinogen. Particulates are the deadliest form of air pollution[citation needed] due to their ability to penetrate deep into the lungs and blood streams unfiltered, causing permanent DNA mutations, heart attacks, and premature death [1]. In 2013, a study involving 312,944 people in nine European countries revealed that there was no safe level of particulates and that for every increase of 10 $$\mu g / m^3$$ in PM10, the lung cancer rate rose 22%. The smaller PM2.5 were particularly deadly, with a 36% increase in lung cancer per 10 $$\mu g / m^3$$ as it can penetrate deeper into the lungs [1].
+Subtypes of atmospheric particles include suspended particulate matter (SPM), thoracic and respirable particles,[4] inhalable coarse particles, which are coarse particles with a diameter between 2.5 and 10 micrometers (μm) (PM10),[5] fine particles with a diameter of 2.5 μm or less[5] (PM2.5),[6] ultrafine particles, and soot.
 
-Some particulates occur naturally, originating from volcanoes, dust storms, forest and grassland fires, living vegetation, and sea spray [1]. Human activities, such as the burning of fossil fuels in vehicles, power plants and various industrial processes, also generate significant amounts of particulates. Coal combustion in developing countries is the primary method for heating homes and supplying energy. Because salt spray over the oceans is the overwhelmingly most common form of particulate in the atmosphere, anthropogenic aerosols—those made by human activities—currently account for about 10 percent of the total mass of aerosols in our atmosphere [1].
+The IARC and WHO designate airborne particulates a Group 1 carcinogen.[7] Particulates are the deadliest form of air pollution[citation needed] due to their ability to penetrate deep into the lungs and blood streams unfiltered, causing permanent DNA mutations, heart attacks, and premature death.[8] In 2013, a study involving 312,944 people in nine European countries revealed that there was no safe level of particulates and that for every increase of 10 μg/m3 in PM10, the lung cancer rate rose 22%. The smaller PM2.5 were particularly deadly, with a 36% increase in lung cancer per 10 μg/m3 as it can penetrate deeper into the lungs.[9]
 
-[1]: https://en.wikipedia.org/wiki/Particulates
-[2]: https://www.epa.gov/pm-pollution
-[3]: https://www.greenfacts.org/en/particulate-matter-pm/level-2/01-presentation.htm
+
+Some particulates occur naturally, originating from volcanoes, dust storms, forest and grassland fires, living vegetation, and sea spray. Human activities, such as the burning of fossil fuels in vehicles,[10] power plants and various industrial processes, also generate significant amounts of particulates. Coal combustion in developing countries is the primary method for heating homes and supplying energy. Because salt spray over the oceans is the overwhelmingly most common form of particulate in the atmosphere, anthropogenic aerosols—those made by human activities—currently account for about 10 percent of the total mass of aerosols in our atmosphere.[11]
 
 ## Situation in Deutschland
 
@@ -278,6 +274,8 @@ $ gnuplot plot.gp
 # A security twist
 
 ## Random.org
+
+
 What's this fuss about true randomness?
 
 Perhaps you have wondered how predictable machines like computers can generate randomness. In reality, most random numbers used in computer programs are pseudo-random, which means they are generated in a predictable fashion using a mathematical formula. This is fine for many purposes, but it may not be random in the way you expect if you're used to dice rolls and lottery drawings.

@@ -9,7 +9,7 @@
 title: Compulogy
 #email: paul.duplys At posteo.de
 description: > # this means to ignore newlines until "baseurl:"
-  Feedback & comments regarding the posts are welcome - drop me a line to paul dot duplys at posteo dot de! 
+  I really appreciate feedback & comments regarding the posts, especially if you spot any mistakes or ambiguities! Drop me a line to paul dot duplys at posteo dot de
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://www.duplys.github.io" # the base hostname & protocol for your site
 twitter_username: duplys
@@ -18,3 +18,5 @@ github_username:  duplys
 # Build settings
 markdown: kramdown
 
+gems:
+- jekyll-seo-tag
