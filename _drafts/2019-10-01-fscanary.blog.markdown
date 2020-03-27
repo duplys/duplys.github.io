@@ -1,0 +1,28 @@
+---
+layout: post
+title:  "File Bird"
+date:   2017-04-25 21:59:47 +0100
+categories: crypto math
+---
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+## Canaries
+
+## Fscanary
+The fscanary Go tool. Make an experiment by describing experiments that you perform in a Docker container we Fscanary is installed. 
+
+## Cryptography to the Rescue!
+
+
+# References
+* [Mihir Bellare "A Note on Negligible Functions"](https://eprint.iacr.org/1997/004.pdf)
+* [Jonathan Katz, Yahuda Lindell "Introduction to Modern Cryptography"](https://www.amazon.de/Introduction-Modern-Cryptography-Principles-Protocols/dp/1584885513/ref=sr_1_fkmr0_2?s=books-intl-de&ie=UTF8&qid=1497467070&sr=1-2-fkmr0&keywords=Introduction+to+Modern+Cryptography+first+edition)
+* [A turning point in French politics](http://www.cherwell.org/2017/04/23/le-pen-macron-and-melenchon-mark-a-turning-point-in-french-politics/)
+* [Answer on Cryptography Stack Exchange](https://crypto.stackexchange.com/a/25460/5131)
+* [Comparing relative frequency and probability](http://www.casio.edu.shriro.com.au/products/fx9860gau/pdf/relfrequency.pdf)
+* [Weisstein, Eric W. "Relative Frequency." From MathWorld--A Wolfram Web Resource.](http://mathworld.wolfram.com/RelativeFrequency.html)
+* [The negligible, the noticeable and the overwhelming](http://mathwiki.cs.ut.ee/asymptotics/06_the_negligible_the_noticeable_and_the_overwhelming?s[]=negligible)
+* [Cryptography StackExchange "How to calculate if probability is negligible or not"](https://crypto.stackexchange.com/questions/25440/how-to-calculate-if-probability-is-negligible-or-not)
