@@ -20,7 +20,7 @@ Besides software security, I do research on monitoring, telemetry and intrusion 
 
 In addition to my research work, since 2018 I'm a senior manager responsible for a research group doing research in cybersecurity, privacy and safety. Since 2020, I'm also responsible for the research program on cybersecurity, privacy and cybersafety at the Robert Bosch corporate research. 
 
-I'm a huge fan of open source and all *nix things, especially Debian/Ubuntu GNU/Linux, as well as emacs (lately, I'm quit into vim, though) and LaTeX (thanks Don!). I used to code quite a lot in Ruby, and still think it's the best language in terms of its combination of code elegance and language features. However, due to many excellent libraries like numpy, scipy, matplot, scikit.learn, etc., I started using Python couple of years ago. Lately, I'm interested in functional programming languages, too. 
+I'm a huge fan of open source and all *nix things, especially Debian/Ubuntu GNU/Linux, as well as emacs (lately, I'm quite into vim, though) and LaTeX (thanks Don!). I used to code quite a lot in Ruby, and still think it's the best language in terms of its combination of code elegance and language features. However, due to many excellent libraries like numpy, scipy, matplot, scikit.learn, etc., I started using Python couple of years ago. Lately, I'm interested in functional programming languages, too. 
 
 I love books, in particular non-fiction, scientific writing. Usually, I'm buying more books than I manage to read. My all-time favorite fiction writers include Paul Auster, Isaac Asimov, and Douglas Adams.
 
