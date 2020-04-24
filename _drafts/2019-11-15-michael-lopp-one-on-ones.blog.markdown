@@ -15,7 +15,9 @@ Recently, I started reading a book by Michael Lopp called ["Managing Humans"](ht
 One of the things Michael -- or Rands, as he'd like to be called -- talks about in his book are one-on-ones. Rand's treatement of this topics is very crisp, straight forward, and funny to read. I won't reproduce what Michael wrote (also because I don't want to spoiler this). Instead, I would like to refer to some of Michael's thoughts on one-on-ones and share my personal experience and some of my own musings.
 
 # Setting the Stage
-Business is noisy. Business is full of people worrying loudly about projects, processes, and other people. These people have opinions and they share them all over the place, all the time. This collective chatter is part of the daily regimen of a healthy business, but this chatter will bury the individual voice unless someone pays attention. And paying attention is best done in a one-on-one with the people you manage.
+Michael starts of with the observation that business is noisy -- people worry loudly about projects, processes, and other people and have opinions that they share all over the place, all the time. The problem is: This collective chatter, as Michael calls it, will bury the individual voice if no one pays attention. So according to Michael, the manager's job in a one-on-one is to pay attention (because it's best done in this setting) and to give the smallest voice a chance to be heard.
+
+
 
 Your job in a one-on-one is to give the smallest voice a chance to be heard, and I start with a question: "How are you?"
 
