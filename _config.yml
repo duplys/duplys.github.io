@@ -7,9 +7,8 @@
 
 # Site settings
 title: Compulogy
-#email: paul.duplys At posteo.de
 description: > # this means to ignore newlines until "baseurl:"
-  I really appreciate feedback & comments regarding the posts, especially if you spot any mistakes or ambiguities! Drop me a line to paul dot duplys at posteo dot de
+  I appreciate feedback & comments, especially if you spot any mistakes or ambiguities! Reach out to me on Twitter.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://www.duplys.github.io" # the base hostname & protocol for your site
 twitter_username: duplys
