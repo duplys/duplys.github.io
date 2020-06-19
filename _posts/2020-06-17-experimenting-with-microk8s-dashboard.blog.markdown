@@ -75,9 +75,9 @@ In my case, the port is `32164`. You can now access the dashboard by firing up y
 
 ![dashboard-login](/assets/microk8s-kubernetes-dashboard-setup.png)
 
-Choose "Token" as the authentication method & paste your token here. You're done - congratulations! Enjoy your shiny new Kubernetes dashboard!
+Choose "Token" as the authentication method & paste your token here. **You're done - congratulations! Enjoy your shiny new Kubernetes dashboard!**
 
-If you still experience problems, you should configure the `ufw` firewall on the Raspberry Pi to allow pod-to-pod and pod-to-internet network traffic:
+P.S. If you still experience problems, you should configure the `ufw` firewall on the Raspberry Pi to allow pod-to-pod and pod-to-internet network traffic:
 
 ```shell
 sudo ufw allow in on cni0 && sudo ufw allow out on cni0
