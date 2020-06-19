@@ -6,6 +6,10 @@ permalink: /about/
 
 [![I am nerdier than 95% of all people. Are you a nerd? Click here to take the Nerd Test, get geeky images and jokes, and talk on the nerd forum!](http://www.nerdtests.com/images/ft/nq/a287f5ee0b.gif)](http://www.nerdtests.com/ft_nq.php)
 
+<a href="https://dev.to/duplys">
+  <img src="https://d2fltix0v2e0sb.cloudfront.net/dev-badge.svg" alt="Paul Duplys's DEV Profile" height="30" width="30">
+</a>
+
 I'm a security researcher working at Robert Bosch GmbH, a Tier-1 automotive supplier and manufacturer of industrial, residential and consumer goods. Since 2007, I'm doing applied research in various fields of information security. I started my professional career in 2007 in the area of side channel analysis (SCA), SCA countermeasures and, in particular, SCA evaluation methodologies. From 2011 to 2012, I studied the susceptibility of typical automotive microcontrollers to SCA attacks. In 2014, I got my PhD from the University of Tuebingen on side channel evaluation method tailored for the automotive domain.
 
 Following my SCA investigations, I was involved in the research on physical-layer security (PHYSEC) from 2012 to 2015. In particular, I worked on authenticated key agreement from channel measurements in wireless communications protocols like WiFi. I developed protocols to derive symmetric keys from the reciprocity of wireless channels and performed risk & threat analyses for such systems. 
