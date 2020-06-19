@@ -2,7 +2,7 @@
 layout: post
 title:  "Installing Kubernetes Dashboard for microk8s on a Raspberry Pi Cluster"
 date:   2020-06-04 17:42:51 +0100
-categories: kubernetes microk8s dashboard
+categories: kubernetes microk8s dashboard raspberry-pi-cluster
 ---
  
 ![kubernetes-dashboard](/assets/microk8s-kubernetes-dashboard-first-light.png)
