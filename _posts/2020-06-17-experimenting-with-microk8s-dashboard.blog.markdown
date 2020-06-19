@@ -60,7 +60,7 @@ However, none of the above worked for me. What finally worked was to edit the ku
 $ kubectl -n kubernetes-dashboard edit service kubernetes-dashboard
 ```
 
-The above command will fire up a text editor (in Ubuntu 18.04 for Raspberry Pi, `vim` seems to be the standard one) with the `yaml` file describing the kubernetes-dashboard service. In service `spec` section in the yaml file, you have to change `type: ClusterIP` to `type: NodePort` and save file.
+The above command will fire up a text editor (in Ubuntu 18.04 for Raspberry Pi, `vim` seems to be the standard one) with the `yaml` file describing the kubernetes-dashboard service. In service `spec` section in the yaml file, you have to change `type: ClusterIP` to `type: NodePort` and save the file.
 
 Finally, you need to determine the port on which the Kubernetes dashboard is exposed in your `microk8s` installation using the `kubectl get service` command like this:
 
