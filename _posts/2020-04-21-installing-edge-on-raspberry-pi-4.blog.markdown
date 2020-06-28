@@ -24,7 +24,7 @@ To get the Ubuntu image for Raspberry Pi, visit the [official Ubuntu download we
 
 Once the download is complete you need to extract the Ubuntu Server 20.04 image (the `.xz` file is an archive) and copy it onto your microSD card. The installation instructions contain links to short tutorials on how to do this under Linux, Windows and Macs. If you happen to be on a Windows machine, you can use the `win32disk` tool to write the Ubuntu image onto the microSD card (remember that you first need unpack the `.xz` archive).
 
-Because I'm too lazy to use an extra screen for the installation, I rather chose to `ssh` into the Raspberry Pi once it has booted. To enable this, you can follow the instructions described [here] https://www.raspberrypi.org/documentation/remote-access/ssh/ and simply create a new file called `ssh` in the root directory of your microSD card (it's the same directory where files like config.txt are located). This will enable the `ssh` daemon at the first boot of your Rapsberry so you will be able to immediately `ssh` into it. 
+Because I'm too lazy to use an extra screen for the installation, I rather chose to `ssh` into the Raspberry Pi once it has booted. To enable this, you can follow the instructions described [here](https://www.raspberrypi.org/documentation/remote-access/ssh/) and simply create a new file called `ssh` in the root directory of your microSD card (it's the same directory where files like config.txt are located). This will enable the `ssh` daemon at the first boot of your Rapsberry so you will be able to immediately `ssh` into it. 
 
 Next, you need connect the Raspberry to your router using a network cable, insert the microSD card into the SD card slot and power up the Raspberry Pi.
 

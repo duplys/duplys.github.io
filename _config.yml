@@ -17,5 +17,5 @@ github_username:  duplys
 # Build settings
 markdown: kramdown
 
-gems:
+plugins:
 - jekyll-seo-tag
