@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Sponge Example Attacks On Deep Neural Networks"
-date:   2016-07-08 22:05:59 +0200
+date:   2020-06-28 12:42:32 +0100
 categories: infosec ai
 ---
 
