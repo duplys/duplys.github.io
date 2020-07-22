@@ -1,22 +1,33 @@
 ---
 layout: post
-title:  "Mediawiki with microk8s"
+title:  "Haute Cuisine: A Recipe for Mediawiki on a `microk8s` Kubernetes Cluster"
 date:   2020-07-06 20:48:45 +0100
 categories: kubernetes
 ---
 
 # Introduction
+* Exocortex
+* Find the book and cite
+* What software can we use?
+* Wikimedia!
+MediaWiki is free and open-source wiki software. Originally developed by Magnus Manske and improved by Lee Daniel Crocker, it runs on many websites, including Wikipedia, Wiktionary and Wikimedia Commons. It is written in the PHP programming language and stores the contents into a database. Like WordPress, which is based on a similar licensing and architecture, it has become the dominant software in its category.
 
-* how can I create a volume in a deployment?
-* how can I create a deployment of the mediawiki container?
-* how can I create a deployment of the mariadb container?
-* is everything going into a single deployment or into two deployments?
+For ease of administration, we'll use Kubernetes to deploy the Mediawiki application. Kubernetes will take care that the software runs properly and will replace any not running instances, will make sure that things work reliably by running multiple copies of the application and making sure that any copy that stops working is immediately replaced by a new copy.
+
+A word on spelling: for easier reading -- and in alignment with conventions used in the official Kubernetes documentation -- I will capitalize the names of the Kubernetes objects. Hence, the words "Deployment" and "Pod" refer to specific Kubernetes objects (more details on that later).
+
+# The Ingredients
+So here are the ingredients we need:
+* [A `microk8s` Kubernetes cluster on Raspberry Pi](https://dev.to/duplys/a-la-carte-for-devs-microk8s-on-raspberry-pi-4-9j9)
+* The official `mediawiki` Docker image
+* The official `mariadb` Docker image
+* A `docker-compose.yml` file that we will use as a starting point
+
 
 # Starting Point
+If you look up the [official MediaWiki Docker image on DockerHub](https://hub.docker.com/_/mediawiki), you will find a `docker-compose` file. We'll use this file as a starting point for writing our Kubernetes deployment manifest, so we can deploy MediaWiki using `microk8s.kubectl apply` command on your private Raspberry Pi Kubernetes cluster. This is what `docker-compose` file looks like: 
 
-OK, here is a Mediawiki `docker-compose.yml`:
-
-```docker
+```yml
 # MediaWiki with MariaDB
 #
 # Access via "http://localhost:8080"
@@ -47,10 +58,19 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
 ```
 
-# The Mediawiki container
+# The MediaWiki Service
+Let's start by creating a `microk8s` Kubernetes deployment for the MediaWiki container.
 
-## Deployment
-```docker
+## The Minimal MediaWiki Deployment
+A [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) is a Kubernetes object &mdash; a persistent entity in the Kubernetes system defining the _desired state_ &mdash; that basically specifies a ReplicaSet and the replicated Pods to be run. The specification of a Kubernetes object, referred to as a _manifest_, must contain the following [required fields](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/): 
+* `apiVersion` specifying which version of the Kubernetes API is used to create the object
+* `kind` specifying the kind of the object to be created
+* `metadata` for uniquely identifying the object (at least a `name` string and a UID)
+* `spec` specifying the object's desired state
+
+Therefore, as a minimum, the MediaWiki Deployment manifest would look something like this (feel free to choose your own UIDs and label values):
+
+```yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -70,12 +90,33 @@ spec:
           image: mediawiki
 ```
 
-## Volumes
-OK, so first let's see how to deal with volumes in Kubernetes. The official documentation for Kubernetes volumes [can be found here](https://kubernetes.io/docs/concepts/storage/volumes/). 
+Note that the label in `spec.selector.matchLabels` must match the label in `spec.template.metadata.labels`. [This is because](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) the `.spec.selector` field defines how the Deployment finds which Pods to manage. Thus, you need to select a label that is defined in the Pod template (`app: mediawiki-app`).
 
-I can create a deployment by issuing `microk8s.kubectl apply -f mediawiki.yml` with this deployment manifest:
+We can create the Deployment by issuing `microk8s.kubectl apply -f mediawiki.yml` on the command line of the Raspberry Pi (assuming you saved the Deployment manifest in the file `mediawiki.yml`). It takes some time when we run it for the first time because the images must be downloaded first. After a while &mdash; it takes approximately 5-10 minutes on my RPi &mdash; you should see something like this:
 
-```docker
+```shell
+ubuntu@ubuntu:~/mediawiki$ microk8s.kubectl get all
+NAME                                 READY   STATUS    RESTARTS   AGE
+pod/mediawiki-app-656f6f8d64-7f4xz   1/1     Running   0          11m
+pod/mediawiki-app-656f6f8d64-9x924   1/1     Running   0          11m
+
+NAME                  TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+service/kubernetes    ClusterIP   10.152.183.1    <none>        443/TCP        75d
+
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/mediawiki-app   2/2     2            2           11m
+
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/mediawiki-app-656f6f8d64   2         2         2       11m
+ubuntu@ubuntu:~/mediawiki$
+```
+
+The Deployment is running, the ReplicaSet was created and the two Pods are running just like we specified in the above manifest.
+
+## Adding Volumes
+In the `docker-compose` file, our starting point from above, the `mediawiki` service uses a Docker volume for the `/var/www/html/images` directory within the `mediawiki` container. So let's add a volume to our Kubernetes Deployment. The official documentation for Kubernetes volumes [can be found here](https://kubernetes.io/docs/concepts/storage/volumes/). It turns out, we need to add a `volumeMounts` field to `spec.containers` and pass it a list (that's why the next line starts with a `-`) containing the `mountPath` and the `name` of the volume. We also need to add the a `volume` field to `spec` and list the volume we want to add. The Deployment manifest now looks like this:
+
+```yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -100,32 +141,7 @@ spec:
         - name: mediawiki-volume
 ```
 
-It takes some time if I run it for the first time since the images must be downloaded first. After a while - approximately 5-10 minutes on my RPi - I see this:
-
-```shell
-ubuntu@ubuntu:~/mediawiki$ microk8s.kubectl get all
-NAME                                 READY   STATUS    RESTARTS   AGE
-pod/mediawiki-app-656f6f8d64-7f4xz   1/1     Running   0          11m
-pod/mediawiki-app-656f6f8d64-9x924   1/1     Running   0          11m
-pod/my-nginx-9b596c8c4-4jp7d         1/1     Running   7          73d
-pod/my-nginx-9b596c8c4-fsm2d         1/1     Running   0          13d
-pod/my-nginx-9b596c8c4-m5vtt         1/1     Running   0          9d
-
-NAME                  TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-service/kubernetes    ClusterIP   10.152.183.1    <none>        443/TCP        75d
-service/my-nginx-np   NodePort    10.152.183.73   <none>        80:30178/TCP   73d
-
-NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/mediawiki-app   2/2     2            2           11m
-deployment.apps/my-nginx        3/3     3            3           73d
-
-NAME                                       DESIRED   CURRENT   READY   AGE
-replicaset.apps/mediawiki-app-656f6f8d64   2         2         2       11m
-replicaset.apps/my-nginx-9b596c8c4         3         3         3       73d
-ubuntu@ubuntu:~/mediawiki$ 
-```
-
-It seems like both pods are running, which is good. If I look closer into one of the pods, I see this:
+To update our MediaWiki Deployment, we issue again the same command `microk8s.kubectl apply -f mediawiki.yml`. If we now take a closer look at one of the Pods, we should see a volume attached to it (the actual output of `microk8s.kubectl describe pod` is very detailed, I have trimmed it here for the ease of reading):
 
 ```shell
 ubuntu@ubuntu:~/mediawiki$ microk8s.kubectl describe pod mediawiki-app-656f6f8d64-7f4xz
@@ -157,14 +173,15 @@ Volumes:
 ubuntu@ubuntu:~/mediawiki$ 
 ```
 
-Note that `microk8s` reports that this volume is just a temporary directory. That is, this type of volume is not persistent in the sense that it is deleted if the pod ceases to exist.
-
+Note that `microk8s` reports that this volume is just a temporary directory. This is because this type of volume is not persistent in the sense that it is deleted if the pod ceases to exist.
 
 ## Restart
-The official Kubernetes documentation for the Pod lifecycle [can be found here](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/). It turns out that a `PodSpec` has a `restartPolicy` field with possible values `Always`, `OnFailure`, and `Never`. The default value is `Always`. Thus, there's nothing for us to do. 
+Our `docker-compose` file defines the restart policy `always` for the `mediawiki` service. As described in the [official Kubernetes documentation for the Pod lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/), a Pod specification has a `restartPolicy` field with possible values `Always`, `OnFailure`, and `Never`. The default value is `Always`. So we're done here!
 
 ## Ports
-```docker
+The `mediawiki` service in the `docker-compose` file exposes port 80 of the `mediawiki` container and maps it to the port 8080 on the host. To replicate this in our Kubernetes manifest, we first add the `spec.containers.ports` field and pass it a list of the container ports to be exposed (`- containerPort: 80` in this case). The manifest now looks like this:
+
+```yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -191,7 +208,7 @@ spec:
         - name: mediawiki-volume
 ```
 
-Applying the above manifest (added `ports`) using `microk8s.kubectl apply -f mediawiki.yml` gives this:
+We again update our Deployment using the `microk8s.kubectl apply -f mediawiki.yml` command. We can verify that `ports` specification took effect:
 
 ```shell
 ubuntu@ubuntu:~/mediawiki$ microk8s.kubectl describe deployment mediawiki-app
@@ -228,15 +245,15 @@ Containers:
 ubuntu@ubuntu:~/mediawiki$ 
 ```
 
-OK, so this shows that the port 80 of the container is now exposed. What this means is that now your Pod is accessible through port 80 from any node within your cluster [need to check this!]. From [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/):
+As you can see, port 80 of the MediaWiki container is now exposed. [What this means](https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/) is that your Pod is now accessible through port 80 from any Kubernetes Node within your cluster. 
 
-  So we have pods running nginx in a flat, cluster wide, address space. In theory, you could talk to these pods directly, but what happens when a node dies? The pods die with it, and the Deployment will create new ones, with different IPs. This is the problem a Service solves.
+But what happens if a Node dies? The Pods running on that Node die with it. The Deployment will create new Pods, but they will have different IP addresses. And that's exactly the problem solved by a Kubernetes Service. 
 
-  A Kubernetes Service is an abstraction which defines a logical set of Pods running somewhere in your cluster, that all provide the same functionality. When created, each Service is assigned a unique IP address (also called clusterIP). This address is tied to the lifespan of the Service, and will not change while the Service is alive. Pods can be configured to talk to the Service, and know that communication to the Service will be automatically load-balanced out to some pod that is a member of the Service.
+A Kubernetes Service defines a logical set of Pods that provide the same functionality and run somewhere in the Kubernetes cluster. Upon creation, each Service is assigned a unique IP address, the so-called `clusterIP`.  This address will not change while the Service is alive. Communication to the Service will be automatically load-balanced to some Pod that is a member of that Service.
 
-Thus, we need to create a service to expose the mediawiki pods to the outside. Note that the service label must match our `selector` label in the Deployment `spec`, namely `app: mediawiki-app` in our case.
+Thus, we need to create a Service to expose the `mediawiki` pods to the outside world (outside of the Kubernetes cluster, that is). As with our MediaWiki Deployment, we store the Service manifest in a new file `mediawiki-service.yml`: 
 
-```docker
+```yml
 apiVersion: v1
 kind: Service
 metadata:
@@ -249,10 +266,11 @@ spec:
       protocol: TCP
   selector:
     app: mediawiki-app
-
 ```
 
-By the way: for some odd reason, `microk8s.kubectl` returns an error saying `Service` is an unknown type if I use `apiVersion: apps/v1` as in the deployment (using just `v1` instead works). Anyway, let's look at what the Kubernetes cluster looks like now:
+Note that the Service label must match our `selector` label in the Deployment `spec` (in our case the label `app: mediawiki-app`). By the way: for some odd reason, `microk8s.kubectl` returns an error saying `Service` is an unknown type if I use `apiVersion: apps/v1` as in the Deployment (using just `v1` instead works). 
+
+To start the Service, we issue the `microk8s.kubectl apply -f mediawiki-service.yml` command. Let's now inspect out Kubernetes cluster:
 
 ```shell
 ubuntu@ubuntu:~/mediawiki$ microk8s.kubectl get all
@@ -273,9 +291,9 @@ replicaset.apps/mediawiki-app-656f6f8d64   0         0         0       49m
 ubuntu@ubuntu:~/mediawiki$ 
 ```
 
-We see that the service was created, but it has the type `ClusterIP` which means that it cannot be reached from outside of the Raspberry Pi. To change this, we need to change the type of the `mediawiki-srv` service into `NodePort`. In addition, the port should be 80 (as this is the port exposed by the mediawiki Pod):
+From the above output, you can see that the Service was created. However, the Service has the type `ClusterIP` meaning that it cannot be reached from outside of the Kubernetes cluster. To fix this, we need to change the `type` of the `mediawiki-srv` service into `NodePort`. In addition, the port should be 80 (as this is the port exposed by the `mediawiki` Pod):
 
-```docker
+```yml
 apiVersion: v1
 kind: Service
 metadata:
@@ -291,7 +309,7 @@ spec:
     app: mediawiki-app
 ```
 
-and run `microk8s.kubectl apply -f mediawiki-service.yml` again:
+We `microk8s.kubectl apply` the Service manifest again and check the result:
 
 ```shell
 ubuntu@ubuntu:~/mediawiki$ microk8s.kubectl apply -f mediawiki-service.yml 
@@ -314,7 +332,8 @@ replicaset.apps/mediawiki-app-656f6f8d64   0         0         0       59m
 ubuntu@ubuntu:~/mediawiki$ 
 ```
 
-OK, so let's try to query our newly created service using `curl` command line tool directly on the Raspberry Pi:
+## Verifying the Intermediate Result
+We can now check our MediaWiki Service and Deployment using the `curl` command line tool directly on the Raspberry Pi:
 
 ```shell
 ubuntu@ubuntu:~/mediawiki$ curl http://127.0.0.1:32681
@@ -355,7 +374,7 @@ ubuntu@ubuntu:~/mediawiki$ curl http://127.0.0.1:32681
 ubuntu@ubuntu:~/mediawiki$ 
 ```
 
-Nice - it works! OK, now let's try to access the mediawiki service from the host, i.e., outside the Raspberry Pi:
+Now that it works locally, we can try to access the `mediawiki` service from our host system, i.e., outside the Raspberry Pi. If you open your web browser and type `http://<ip address of you RPi>:32681`, you should see this:
 
 ![alt text](/assets/mediawiki-initial-screenshot.png)
 
@@ -364,7 +383,7 @@ In `docker-compose` the `link` directive creates a link to containers in another
 
   Containers for the linked service are reachable at a hostname identical to the alias, or the service name if no alias was specified.
 
-  Links are not required to enable services to communicate - by default, any service can reach any other service at that service’s name. (See also, the Links topic in Networking in Compose.)
+  Links are not required to enable services to communicate - by default, any service can reach any other service at that service's name. (See also, the Links topic in Networking in Compose.)
 
   Links also express dependency between services in the same way as depends_on, so they determine the order of service startup.
 
@@ -372,3 +391,101 @@ I'm not sure whether I need this in Kubernetes because the [official documentati
 
   Kubernetes gives every pod its own cluster-private IP address, so you do not need to explicitly create links between pods or map container ports to host ports. This means that containers within a Pod can all reach each other's ports on localhost, and all pods in a cluster can see each other without NAT.
 
+
+# The MariaDB Service
+So, looking again at our starting point (the `docker-compose.yml` file), for the MariaDB Service, we see this:
+
+```yml
+version: '3'
+services:
+
+  # -- snip --
+
+  database:
+    image: mariadb
+    restart: always
+    environment:
+      # @see https://phabricator.wikimedia.org/source/mediawiki/browse/master/includes/DefaultSettings.php
+      MYSQL_DATABASE: my_wiki
+      MYSQL_USER: wikiuser
+      MYSQL_PASSWORD: example
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+```
+
+We already saw that we don't need to do anything explicitly for the `always` restart policy since it's the default in Kubernetes. So let's add the second container for the MariaDB database to our deployment and set the required environment variables for this container.
+
+In Kubernetes, you can [set environment variables](https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/) using the `spec.containers.env` field. So in our case, it looks like this:
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediawiki-app
+spec:
+    
+    # -- snip --
+    
+    spec:
+      containers:
+
+        # -- snip --
+
+        - name: mariadb-container
+          image: mariadb
+          env:
+            - name: MYSQL_DATABASE
+              value: my_wiki
+            - name: MYSQL_USER
+              value: wikiuser
+            - name: MYSQL_PASSWORD
+              value: example
+            - name: MYSQL_RANDOM_ROOT_PASSWORD
+              value: 'yes'
+      
+      # -- snip --
+```
+
+You can check https://phabricator.wikimedia.org/source/mediawiki/browse/master/includes/DefaultSettings.php to see why we need to set these environment variables in the MariaDB container for it to work with our MediaWiki container.
+
+# Putting it All Together
+Finally, we have come to the end of our little MediaWiki Deployment journey. Here is our final Kubernetes Deployment manifest for MediaWiki:
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediawiki-app
+spec:
+  selector:
+    matchLabels:
+      app: mediawiki-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: mediawiki-app
+    spec:
+      containers:
+        - name: mediawiki-container
+          image: mediawiki
+          volumeMounts:
+            - mountPath: /var/www/html/images
+              name: mediawiki-volume
+          ports:
+            - containerPort: 80
+        - name: mariadb-container
+          image: mariadb
+          env:
+            - name: MYSQL_DATABASE
+              value: my_wiki
+            - name: MYSQL_USER
+              value: wikiuser
+            - name: MYSQL_PASSWORD
+              value: example
+            - name: MYSQL_RANDOM_ROOT_PASSWORD
+              value: 'yes'
+      volumes:
+        - name: mediawiki-volume
+```
+
+Enjoy!
