@@ -392,8 +392,8 @@ I'm not sure whether I need this in Kubernetes because the [official documentati
   Kubernetes gives every pod its own cluster-private IP address, so you do not need to explicitly create links between pods or map container ports to host ports. This means that containers within a Pod can all reach each other's ports on localhost, and all pods in a cluster can see each other without NAT.
 
 
-# The MariaDB Service
-So, looking again at our starting point (the `docker-compose.yml` file), for the MariaDB Service, we see this:
+# Adding the MariaDB Container
+Next, we need to add the MariaDB container to our Deployment. In the `docker-compose.yml` file, the MariaDB Service looks like this:
 
 ```yml
 version: '3'
@@ -412,9 +412,15 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
 ```
 
-We already saw that we don't need to do anything explicitly for the `always` restart policy since it's the default in Kubernetes. So let's add the second container for the MariaDB database to our deployment and set the required environment variables for this container.
+We already saw that we don't need to do anything explicitly for the `always` restart policy since it's the default in Kubernetes. However, we have to use a different Docker image for MariaDB because that Docker container will run on our Raspberry Pi. 
 
-In Kubernetes, you can [set environment variables](https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/) using the `spec.containers.env` field. So in our case, it looks like this:
+Why do we need a different Docker image? Well, the Raspberry Pi CPU is based on the ARM architecture which is a different from that of your standard PC or laptop (which nowadays mostly happens to be x86_64). A Docker image is essentially a collection of layers (packaged in `*.tar` files) containing, among other things, binaries needed to run your application, e.g., command utilities like `cp` or `ls`, compilers like `gcc`, scripting languages like `python` or `ruby`, and your application itself, say, `nginx` (if you're curious, you can just run `docker image save <image-name> -o <some-name>.tar` and look into that `.tar` archive to see the layers and the binaries in each layer).
+
+If the Docker image was built on an x86_64 architecture, the resulting binaries cannot be executed on ARM architecture. Thus, many of the official Docker images from DockerHub &mdash; an the official MariaDb image happens to be one of those &mdash; will not run on a Raspberry Pi. To deal with this, you can either build your own MariaDB image for RPi or [use e.g., the `rpi-mariadb` image](https://hub.docker.com/r/jsurf/rpi-mariadb/), which is a port of the official [`mariadb` image](https://hub.docker.com/_/mariadb/) for Raspberry Pi.
+
+**A word of caution:** For security reasons, you should always be very careful when using unofficial Docker images from DockerHub! Since Docker itself runs with `root` permissions on your system, every Docker container can essentially also access your system with `root` permissions (unless you have configured your Docker installation to avoid this particular threat). If you want to learn more about this, a very accessible source is the "Docker in Practice" book by Ian Miell and Aidan Hobson Sayers, [Chapter 14 "Docker and Security"](https://livebook.manning.com/book/docker-in-practice-second-edition/chapter-14/92)).
+
+Finally, we will need to define the 4 environment variables for the MariaDB container. In Kubernetes, you [set environment variables](https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/) using the `spec.containers.env` field. So the part of the Deployment manifest related to MariaDB will look like this:
 
 ```yml
 apiVersion: apps/v1
@@ -431,7 +437,7 @@ spec:
         # -- snip --
 
         - name: mariadb-container
-          image: mariadb
+          image: jsurf/rpi-mariadb
           env:
             - name: MYSQL_DATABASE
               value: my_wiki
@@ -445,10 +451,10 @@ spec:
       # -- snip --
 ```
 
-You can check https://phabricator.wikimedia.org/source/mediawiki/browse/master/includes/DefaultSettings.php to see why we need to set these environment variables in the MariaDB container for it to work with our MediaWiki container.
+You can check [the DefaultSettings.php file](https://phabricator.wikimedia.org/source/mediawiki/browse/master/includes/DefaultSettings.php) to see why we need to set these environment variables in the MariaDB container for it to work.
 
 # Putting it All Together
-Finally, we have come to the end of our little MediaWiki Deployment journey. Here is our final Kubernetes Deployment manifest for MediaWiki:
+So here's what our final Kubernetes Deployment manifest for MediaWiki looks like:
 
 ```yml
 apiVersion: apps/v1
@@ -474,7 +480,7 @@ spec:
           ports:
             - containerPort: 80
         - name: mariadb-container
-          image: mariadb
+          image: jsurf/rpi-mariadb
           env:
             - name: MYSQL_DATABASE
               value: my_wiki
@@ -488,4 +494,88 @@ spec:
         - name: mediawiki-volume
 ```
 
-Enjoy!
+All there is left to do is to issue the `microk8s.kubectl apply -f mediawiki.yml` command:
+
+```shell
+ubuntu@ubuntu:~/mediawiki$ microk8s.kubectl apply -f mediawiki.yml 
+deployment.apps/mediawiki-app configured
+ubuntu@ubuntu:~/mediawiki$
+```
+
+# Setting Up MediaWiki
+From your host computer, you can now point your browser to `http://<ip address of you RPi>:32681` and click on the link to start setting up the MediaWiki application. The installation procedure is self-explanatory. The only thing you need to adjust during the setup is to set the IP address of the database to `127.0.0.1` (instead of the default `localhost`).
+
+At the end of the installation, you will be prompted to download the `LocalSettings.php` file. You will need this setting file to run MediaWiki (otherwise, you will always end up in the setup mode). To mount this file into the `mediawiki` container, we use the [`hostPath` volume](https://kubernetes.io/docs/concepts/storage/volumes/) which mounts a file or directory from the host node's filesystem into your Pod. So, we need to add the following to our Deployment manifest:
+
+```yml
+
+# -- snip --
+
+    spec:
+      containers:
+        - name: mediawiki-container
+          image: mediawiki
+          volumeMounts:
+
+            # -- snip --
+
+            - mountPath: /var/www/html/LocalSettings.php
+              name: mediawiki-localsettings
+          ports:
+            - containerPort: 80
+
+      # -- snip --
+
+      volumes:
+        - name: mediawiki-volume
+        - name: mediawiki-localsettings
+          hostPath: 
+            path: /home/ubuntu/mediawiki/LocalSettings.php
+```
+
+So the very final :) Deployment manifest is:
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediawiki-app
+spec:
+  selector:
+    matchLabels:
+      app: mediawiki-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: mediawiki-app
+    spec:
+      containers:
+        - name: mediawiki-container
+          image: mediawiki
+          volumeMounts:
+            - mountPath: /var/www/html/images
+              name: mediawiki-volume
+            - mountPath: /var/www/html/LocalSettings.php
+              name: mediawiki-localsettings
+          ports:
+            - containerPort: 80
+        - name: mariadb-container
+          image: jsurf/rpi-mariadb
+          env:
+            - name: MYSQL_DATABASE
+              value: my_wiki
+            - name: MYSQL_USER
+              value: wikiuser
+            - name: MYSQL_PASSWORD
+              value: example
+            - name: MYSQL_RANDOM_ROOT_PASSWORD
+              value: 'yes'
+      volumes:
+        - name: mediawiki-volume
+        - name: mediawiki-localsettings
+          hostPath: 
+            path: /home/ubuntu/mediawiki/LocalSettings.php
+```
+
+Issue `microk8s.kubectl apply -f mediawiki.yml` one last time and you should have a working MediaWiki instance running as a Kubernetes Deployment. Enjoy!
