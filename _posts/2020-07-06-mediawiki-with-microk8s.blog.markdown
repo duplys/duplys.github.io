@@ -1,9 +1,11 @@
 ---
 layout: post
-title:  "Haute Cuisine: A Recipe for Mediawiki on a `microk8s` Kubernetes Cluster"
+title:  "Deploying Mediawiki on a microk8s Kubernetes Cluster"
 date:   2020-07-06 20:48:45 +0100
-categories: kubernetes
+categories: kubernetes microk8s
 ---
+
+![kubernetes-dashboard](/assets/sunflowers.jpg)
 
 # Boost Your Memory
 In a book I read some time ago, I stumbled upon the idea of artificially augmenting one's memory by systematically storing everything one learns in a single place. The book used the term *exocortex* to refer to this concept of extending the natural brain's memory capabilities by external technical means. Since then, I have used such a mechanism to keep everything I consider important (mostly technical) stuff in one place.
