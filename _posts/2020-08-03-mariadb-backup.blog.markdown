@@ -5,13 +5,7 @@ date:   2020-08-07 22:40:04 +0200
 categories: kubernetes docker database
 ---
 
-1. Make It Interesting - grab the reader's attention, but do it in an honest way
-2. Make It Relevant - explain your motivation, outline your purpose
-3. Make It Relatable - build on more familiar concepts in small steps
-4. Make It Clear, Concise, and Consistent - remove roadblocks to understanding
-5. Make It Memorable - repeat key concepts and end with a bang
-
->>> THIS IS THE STUFF TO START FROM >>>
+![recovering-data](/assets/fishing.jpg)
 
 The easiest way to backup (and restore) a MariaDB database is to use [the `mysqldump` tool](https://mariadb.com/kb/en/mysqldump/). This is especially true when you don't have a huge amount of data in your database. `mysqldump` dumps the data in SQL format which is really handy as it can be imported by most database engines. For more details, see [this MariaDB documentation](https://mariadb.com/kb/en/backup-and-restore-overview/).
 
