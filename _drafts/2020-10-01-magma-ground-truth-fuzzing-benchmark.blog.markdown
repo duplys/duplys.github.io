@@ -16,18 +16,15 @@ For each ported bug, the researchers added instrumentation source code to collec
 Make It Relevant - explain your motivation, outline your purpose
 
 
-# Reading Git Patches
+# Git Patch 101
+A Git patch encodes the line-by-line difference between two text files. It describes how to turn one file into another, and is asymmetric: the patch from `file1` to `file2` is not the same as the patch for the other direction. The patch format uses context as well as line numbers to locate differing file regions so that a patch can often be applied to a somewhat earlier or later version of the first file than the one from which it was derived, as long as the applying program can still locate the context of the change [3][orreily-git-patch]. 
 
-A Git patch encodes the line-by-line difference between two text files. It describes how to turn one file into another, and is asymmetric: the patch from file1 to file2 is not the same as the patch for the other direction. The patch format uses context as well as line numbers to locate differing file regions, so that a patch can often be applied to a somewhat earlier or later version of the first file than the one from which it was derived, as long as the applying program can still locate the context of the change [3][orreily-git-patch]. 
-
-The terms “patch” and “diff” are often used interchangeably, although there is a distinction, at least historically. A diff only need show the differences between two files, and can be quite minimal in doing so. A patch is an extension of a diff, augmented with further information such as context lines and filenames, which allow it to be applied more widely. These days, the Unix diff program can produce patches of various kinds.
-
-Here's an example:
+Here's an example of a git patch (or git diff) after I changed the argument to the `printf` function from `"Hello World!\n"` to `"Hello There!\n"`:
 
 ```bash
-paul@terminus:~/Temp/test-git-diff$ git diff hello.c 
+$ git diff hello.c 
 diff --git a/hello.c b/hello.c
-index dc46521..8a3a9a7 100644
+index dc46521..a00b40d 100644
 --- a/hello.c
 +++ b/hello.c
 @@ -1,6 +1,6 @@
@@ -35,14 +32,28 @@ index dc46521..8a3a9a7 100644
  
  int main(){
 - printf("Hello World!\n");
-+ printf("Hello Digital Physics!\n");
++ printf("Hello There!\n");
   return 0;
  }
-paul@terminus:~/Temp/test-git-diff$
+$ 
 ```
 
+The first line `diff --git a/hello.c b/hello.c` shows that the file being compared is `hello.c` (it's a single file and there are actually no directories `a` and `b` - it's just a convention).
 
+The second line `index dc46521..a00b40d 100644` is the extended header line. In the Git index, `dc46521` and `a00b40d` are the blob IDs of the corresponding versions of the `hello.c` file. Finally, `100644` are the mode bits indicating the type of the `hello.c` file (standard file in this case). 
 
+The next two lines
+
+```bash
+--- a/hello.c
++++ b/hello.c
+```
+
+is the traditional unified diff header that shows the files being compared (`hello.c` in our case).
+
+The line `@@ -1,6 +1,6 @@` indicates the position of the difference section (also known as a "hunk") in the respective `hello.c` versions using the line number and the length. In our example, both in version `--- a/hello.c` and in version `+++ b/hello.c` the hunk starts at line 1 and extends for 6 lines (note the `-` and `+` signs in `@@ -1,6 +1,6 @@`).
+
+What follows is the actual difference. The minus signs show lines present in version `a/hello.c` but missing in version `b/hello.c` and plus signs show lines missing in `a/hello.c` but present in `b/hello.c`. Thus, the difference shows that the line `printf("Hello World!\n");` was replaced by the line `printf("Hello There!\n");`.
 
 
 # How to measure right?
