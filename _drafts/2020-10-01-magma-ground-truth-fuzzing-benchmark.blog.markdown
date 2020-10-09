@@ -12,9 +12,8 @@ Magma is also [a collection of popular open-source libraries](https://hexhive.ep
 
 For each ported bug, the researchers added instrumentation source code to collect the ground truth information about bugs reached (i.e., cases where the buggy code is executed) and triggered (i.e., cases where the fault condition is satisfied by the input) [2][arxiv-paper]. Such an instrumentation allows to measure the *real-world* performance of a fuzzer.
 
-# What's the problem? What am I trying to solve?
-Make It Relevant - explain your motivation, outline your purpose
-
+# Benchmark, anyone?
+Let's say you came up with a shiny new method for finding security vulnerabilities in software. To convince yourself, you now want to test how well your method actually performs. Your method is, however, not a fuzzer. Can you still use Magma for your experiments? You bet! That's because the front-ported bugs in Magma are available as Git patches. Git patches allow you to precisely see where the corresponding bugs are in the source code and, in turn, whether your method is able to find them. You only need to know a few basics about Git patches. 
 
 # Git Patch 101
 A Git patch encodes the line-by-line difference between two text files. It describes how to turn one file into another, and is asymmetric: the patch from `file1` to `file2` is not the same as the patch for the other direction. The patch format uses context as well as line numbers to locate differing file regions so that a patch can often be applied to a somewhat earlier or later version of the first file than the one from which it was derived, as long as the applying program can still locate the context of the change [3][orreily-git-patch]. 
@@ -35,7 +34,6 @@ index dc46521..a00b40d 100644
 + printf("Hello There!\n");
   return 0;
  }
-$ 
 ```
 
 The first line `diff --git a/hello.c b/hello.c` shows that the file being compared is `hello.c` (it's a single file and there are actually no directories `a` and `b` - it's just a convention).
@@ -55,23 +53,53 @@ The line `@@ -1,6 +1,6 @@` indicates the position of the difference section (als
 
 What follows is the actual difference. The minus signs show lines present in version `a/hello.c` but missing in version `b/hello.c` and plus signs show lines missing in `a/hello.c` but present in `b/hello.c`. Thus, the difference shows that the line `printf("Hello World!\n");` was replaced by the line `printf("Hello There!\n");`.
 
+# Examples, please!
+Let's take a look at [CVE-2018-13785](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-13785), an  integer overflow that leads to a divide by zero and, thus, a potential denial of service. The corresponding Git patch in Magma is located in `targets/libpng/patches/bugs/AAH001.patch` file. (Appendix A of the [Magma preprint paper](https://arxiv.org/pdf/2009.01120.pdf) contains a mapping of patches to CVE IDs).
 
-# How to measure right?
-3. Make It Relatable - build on more familiar concepts in small steps
-4. Make It Clear, Concise, and Consistent - remove roadblocks to understanding
+The `AAH001.patch` file looks like this:
 
-# Summary
-5. Make It Memorable - repeat key concepts and end with a bang
+```bash
+$ cat bugs/AAH001.patch 
+diff --git a/pngrutil.c b/pngrutil.c
+index 4db3de990..01c97dc37 100644
+--- a/pngrutil.c
++++ b/pngrutil.c
+@@ -3163,12 +3163,27 @@ png_check_chunk_length(png_const_structrp png_ptr, png_uint_32 length)
+    if (png_ptr->chunk_name == png_IDAT)
+    {
+       png_alloc_size_t idat_limit = PNG_UINT_31_MAX;
++#ifdef MAGMA_ENABLE_FIXES
+       size_t row_factor =
+          (size_t)png_ptr->width
+          * (size_t)png_ptr->channels
+          * (png_ptr->bit_depth > 8? 2: 1)
+          + 1
+          + (png_ptr->interlaced? 6: 0);
++#else
++      size_t row_factor_l =
++         (size_t)png_ptr->width
++         * (size_t)png_ptr->channels
++         * (png_ptr->bit_depth > 8? 2: 1)
++         + 1
++         + (png_ptr->interlaced? 6: 0);
++
++#ifdef MAGMA_ENABLE_CANARIES
++      MAGMA_LOG("AAH001", row_factor_l == ((size_t)1 << (sizeof(png_uint_32) * 8)));
++#endif
++
++      size_t row_factor = (png_uint_32)row_factor_l;
++#endif
+       if (png_ptr->height > PNG_UINT_32_MAX/row_factor)
+          idat_limit = PNG_UINT_31_MAX;
+       else
+```
 
+The patch shows that a bug is located in the `pngrutil.c` file, in function `png_check_chunk_length` starting at line 3163. The lines starting with `+` constitute the bug. Indeed, according to the [CVE-2018-13785](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-13785) which corresponds to this patch, _"a wrong calculation of `row_factor` in the `png_check_chunk_length` function (pngrutil.c) may trigger an integer overflow and resultant divide-by-zero while processing a crafted PNG file, leading to a denial of service"_. Hence, using the Magma `*.patch` files you can easily locate the corresponding bugs. 
 
+# TLDR; (Summary)
+[Magma ground-truth fuzzing benchmark](https://hexhive.epfl.ch/magma/) is a collection of popular and diverse open-source libraries with 118 real-world *front-ported* bugs available in the form of Git patch files under `targets/<target_name>/patches/bugs/*.patch`. While the EPFL [HexHive team](http://hexhive.epfl.ch/#people) originally designed Magma for benchmarking fuzzer performance, it can be used to evaluate the effectiveness of any method for discovering security vulnerabilities in software.
 
-
-Check out the [Jekyll docs][jekyll-docs] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll Talk][jekyll-talk].
 
 [wikipedia-magma]: https://en.wikipedia.org/wiki/Magma
 [arxiv-paper]: https://arxiv.org/abs/2009.01120
 [orreily-git-patch]: https://www.oreilly.com/library/view/git-pocket-guide/9781449327507/ch11.html
-
-[jekyll-docs]: http://jekyllrb.com/docs/home
-[jekyll-gh]:   https://github.com/jekyll/jekyll
-[jekyll-talk]: https://talk.jekyllrb.com/

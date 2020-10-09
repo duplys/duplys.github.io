@@ -1,9 +1,10 @@
 ---
 layout: post
-title:  "Welcome to Jekyll!"
-date:   2016-07-08 22:05:59 +0200
-categories: jekyll update
+title:  "Graphana!"
+date:   2020-09-24 23:00:18 +0200
+categories: graphana
 ---
+
 
 1. Make It Interesting - grab the reader's attention, but do it in an honest way
 2. Make It Relevant - explain your motivation, outline your purpose
@@ -11,11 +12,22 @@ categories: jekyll update
 4. Make It Clear, Concise, and Consistent - remove roadblocks to understanding
 5. Make It Memorable - repeat key concepts and end with a bang
 
-To generate the date for the blog post, issue the following command:
+To start the Graphana image, issue:
 
 ```shell
-paul@terminus:~$ date +%F\ %T\ %z
-2020-08-07 22:40:04 +0200
+paul@terminus:~/Temp$ docker run -d --name=grafana -p 3000:3000 grafana/grafana-enterprise
+Unable to find image 'grafana/grafana-enterprise:latest' locally
+latest: Pulling from grafana/grafana-enterprise
+df20fa9351a1: Pull complete 
+67c52447206a: Pull complete 
+75fbbbcdeb66: Pull complete 
+0527a8f94501: Pull complete 
+cb1efd976f0f: Pull complete 
+3aee5007089a: Pull complete 
+Digest: sha256:eae1ed710501e0f54dfab665f0f858e9b03283ddde612cd8a4d21b68037b962e
+Status: Downloaded newer image for grafana/grafana-enterprise:latest
+4c7a934208a8c21599b13ac883da2ffe37dea6691a16f45f02675011798d76c4
+paul@terminus:~/Temp$ 
 ```
 
 You’ll find this post in your `_posts` directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run `jekyll serve`, which launches a web server and auto-regenerates your site when a file is updated.
