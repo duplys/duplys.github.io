@@ -2,17 +2,22 @@
 layout: post
 title:  "Benford's Law"
 date:   2021-04-09 22:18:23 +0200
-categories: jekyll update
+categories: math programming python
 ---
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
 One of the [Impractical Python Projects](https://nostarch.com/impracticalpythonprojects) in Lee Vaughan's amazing book explores a concept known as the [Benford's law](https://en.wikipedia.org/wiki/Benford%27s_law). This law states that in any list of numbers taken from an arbitrary set of naturally occuring data, more numbers will tend to begin with "1" than with any other digit, and the leading digit is likely to be small.
 
-## A Little Bit of History
+# A Little Bit of History
 
 In 1881, the Canadian–American astronomer and applied mathematician [Simon Newcomb](https://en.wikipedia.org/wiki/Simon_Newcomb) observed that the pages in front of logarithm books &mdash; that is, pages with the lower page numbers &mdash; were far more worn than those in the back. This observation led him to formulate the hypothesis (which was later proven by other mathematicians) that in any list of measurements, the leading digits are much more likely to be small than large. 
 
 Newcomb's discovery apparently was forgotten and was noted again by a physicist [Frank Benford](https://en.wikipedia.org/wiki/Frank_Benford) who used over 20,000 samples of real-world numbers including measurements of rivers, sizes of US polulations, physical constants, molecular weights, entries from a mathematical handbok, street addresses and numbers contained in _Reader's Digest_ magazine to verify it. Benford published his results in a 1938 paper titled "The Law of Anomalous Numbers". Following the publication, Newcomb's discovery came to be known as _Benford's law_, the _law of anomalous numbers_ or simply the _first-digit law_.
 
-## A Little Bit of Math
+# A Little Bit of Math
 From the mathematical point of view, Benford's law is an observation about the frequency distribution of leading digits in many real-life sets of numerical data. It states that in many real-world collections of numbers, the distribution is predictable and _non_-uniform. As an example, the number 1 appears as the leading significant digit about 30% of the time, while 9 appears as the leading significant digit less than 5% of the time. This is very counterintuitive, since most of us would expect a uniform distribution when looking at naturally occurring collections of numbers such as death rates, lenghts of rivers or physical and mathematical constants. As a result, Benford's law is a simple yet very useful tool for fraud detection, e.g., in financial, scientific, and election data.
 
 # Coding Benford's Law
@@ -81,11 +86,13 @@ def get_expected_counts(total_count):
 ## Performing a Statistical Testing
 To find out whether a given list of numbers follows Bendford's law, we'll use a statistical method called [Pearson's Chi-Square test](https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test). Among other things, it can be used as a goodness-of-fit test to determine whether an observed frequency distribution differs from a theoretical distribution. In a nutshell, the goodness-of-fit test works like this. First, you need to compute the test statistic as
 
-$$\chi ^2 = \sum_{i=1}^n \frac{(O_i - E_i)^2}{E_i}$$
+$$
+\chi ^2 = \sum_{i=1}^n \frac{(O_i - E_i)^2}{E_i}
+$$
 
-In the above formula, $O_i$s denote the observed frequency count and $E_i$s denote the expected frequency count for the first digits 0 to 9. The term $(O_i - E_i)^2$ in the numerator is the deviation between the observed and the expected values. The $E_i$ in denominator norms that deviation. In that sense,  the $\chi ^2$ test statistic resembles a normalized sum of squared deviations between observed and theoretical frequencies.
+In the above formula, $$O_i$$s denote the observed frequency count and $$E_i$$s denote the expected frequency count for the first digits 0 to 9. The term $$(O_i - E_i)^2$$ in the numerator is the deviation between the observed and the expected values. The $$E_i$$ in denominator norms that deviation. In that sense,  the $$\chi ^2$$ test statistic resembles a normalized sum of squared deviations between observed and theoretical frequencies.
 
-Next, you determine the degrees of freedom of the statistic and select the desired level of confidence, the $p$-balue, for the test result. For Benford's law, the degrees of freedom is 8 and a typical $p$-value is 0.05.  
+Next, you determine the degrees of freedom of the statistic and select the desired level of confidence, the $$p$$-balue, for the test result. For Benford's law, the degrees of freedom is 8 and a typical $$p$$-value is 0.05.  
 
 Now you need to compare the $\chi^2$ value obtained in step 1 to the critical value from the chi-squared distribution with the same degrees of freedom and the selected confidence level. The latter can also be obtained from [tables like this one](https://web.ma.utexas.edu/users/davis/375/popecol/tables/chisq.html).
 
@@ -105,7 +112,7 @@ def chi_square_test(data_count, expected_counts):
   return chi_square_stat < 15.51
 ```
 
-The above function takes frequencies of first digits in the given data set (`data_set` argument; equivalent to the observed distribution) and the expected first digit frequencies (`expected_counts`; equivalent to the expected distribution). The `for` loop computes the $\chi ^2$ test statistic. For 8 degrees of freedom and the $p$-value of 0.05, the critical value from the chi-squared distribution is 15.51. The function therefore return `False` whenever the computed test statistic is larger then 15.51.
+The above function takes frequencies of first digits in the given data set (`data_set` argument; equivalent to the observed distribution) and the expected first digit frequencies (`expected_counts`; equivalent to the expected distribution). The `for` loop computes the $$\chi ^2$$ test statistic. For 8 degrees of freedom and the $$p$$-value of 0.05, the critical value from the chi-squared distribution is 15.51. The function therefore return `False` whenever the computed test statistic is larger then 15.51.
 
 # Experimenting with Benford's Law
 Now that we have all the necessary functions in place, we can play around with Benford's law. First, let's take a dummy dataset that does not follow Benford's law and see if our code detects that.
