@@ -25,9 +25,9 @@ $ ssh-keygen -t rsa
 ```
 With the above command, `ssh-keygen` generates the key and asks the user for a file in which to store the private key. The public key is stored in the file with the same name and the extension ".pub". `ssh-keygen` also asks for a passphrase. The user may choose an empty passphrase (just hit enter) to indicate no passphrase or choose a string of arbitrary length.
 
-By default, the `ssh` per-user files are stored in `~/.ssh` directory. So a user whishing to use SSH with RSA public key authentication would invoke `ssh-keygen` to generate the files `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key). 
+By default, the `ssh` per-user files are stored in `~/.ssh` directory. So a user wishing to use SSH with RSA public key authentication would invoke `ssh-keygen` to generate the files `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key). 
 
-In our case, we don't want to overwrite the files in `~/.ssh/`. So we can use the `-f` parameter to pass `ssh-keygen` a dummy filename. In addition, because we want to time the `ssh-keygen` execution time, we need to prevent the program from asking for the passphrase. This can be done using the `-N` parameter for providing a new passphrase and giving it an empty string. Thus, creating a $B$-bit RSA key pair, writing the key into a dummy file and skipping the passphrae input can be done by issuing:
+In our case, we don't want to overwrite the files in `~/.ssh/`. So we can use the `-f` parameter to pass `ssh-keygen` a dummy filename. In addition, because we want to time the `ssh-keygen` execution time, we need to prevent the program from asking for the passphrase. This can be done using the `-N` parameter for providing a new passphrase and giving it an empty string. Thus, creating a $B$-bit RSA key pair, writing the key into a dummy file and skipping the passphrase input can be done by issuing:
 
 ```bash
 $ ssh-keygen -t rsa -b <B> -N '' -f rsa_key
@@ -87,7 +87,7 @@ do
 done
 ```
 
-The script first calls `date` with a format string to ouput "year-month-day-hour-minute-second" and uses this time stamp for a unique filename for the logfile. This way previous measurements will not be overwritten by a repeated invocation of the script. The script then writes the `csv` header line which will be useful later on, when the data is read for further processing, because we will be able since the columns because  when the `csv` data is read since this will allow us to name the data columns.
+The script first calls `date` with a format string to output "year-month-day-hour-minute-second" and uses this time stamp for a unique filename for the logfile. This way previous measurements will not be overwritten by a repeated invocation of the script. The script then writes the `csv` header line which will be useful later on, when the data is read for further processing, because we will be able since the columns because  when the `csv` data is read since this will allow us to name the data columns.
 
 The script then iterates through RSA key bit lengths from 2048 to 8192 -- in steps of 100 bits -- and generates 20 keys for every bit length. `time` outputs a list of comma-separated values that are appended to the logfile. Note that `/usr/bin/time` must be used instead of the Bash command `time`, because the Bash command doesn't accept parameters.
 
