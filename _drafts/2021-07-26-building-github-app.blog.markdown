@@ -89,7 +89,67 @@ To help GitHub send webhooks to your local machine without exposing it to the in
 
 Starting a new Smee channel creates a unique domain where GitHub can send webhook payloads. You'll need to know this domain for the next step. 
 
-Now see the Docker image and **find out how to pass the Smee URL using an environment variable**!!!
+OK, basically what we want to do is to get rid of the whole setup stuff by building our own Docker image. So the goal is to build a Docker image with the `smee-client` and probably also the `sinatra` app. How to install `smee` is described [here](https://docs.github.com/en/developers/apps/getting-started-with-apps/setting-up-your-development-environment-to-create-a-github-app). I probably need to bind mount the current repository so that I can edit and run the code (i.e., the app).
+
+[Here's](https://docs.docker.com/engine/reference/commandline/run/) how to pass an environment variable to a Docker container. See also [here](https://stackoverflow.com/questions/30494050/how-do-i-pass-environment-variables-to-docker-containers). 
+
+First, you need to create a Smee channel as described [here](https://docs.github.com/en/developers/apps/getting-started-with-apps/setting-up-your-development-environment-to-create-a-github-app). 
+
+
+OK, run `make` to build the Docker image containing the `smee` client. To start the container, use `make run`. What it does under the surface is to execute the command `docker container run -it --rm -e SMEE_URL='https://smee.io/Ch0Kk0wcNDlwqpn' -p 3000:3000 -v $(CURDIR):/opt/github-app github-app-example`. This command starts the container and passes the value `https://smee.io/Ch0Kk0wcNDlwqpn` in the environment variable `SMEE_URL` and bind mounts the current directory under `/opt/github-app` in the Docker container (which allows us to make changes to the app's source code from the host while running it in the Docker container). 
+
+## Next, register a new GitHub App
+[This section in GitHub Docs](https://docs.github.com/en/developers/apps/getting-started-with-apps/setting-up-your-development-environment-to-create-a-github-app#step-2-register-a-new-github-app) shows how to do it.
+
+After creating the app, as [explained here](https://docs.github.com/en/developers/apps/getting-started-with-apps/setting-up-your-development-environment-to-create-a-github-app#step-3-save-your-private-key-and-app-id), you'll need to generate a private key for your app and note the app ID GitHub has assigned your app. 
+
+In my case, the app ID App ID: 129472.
+
+Click on generate private key and store the `.pem` file in the directory where I can find it. In the end, the GitHub private app key, the app identified and the webhook secret go into a file `.env` in the repository -- this file might NEVER be added to the repository itself, so make sure you add `.env` to `.gitignore`.
+
+Once this is done, in the Docker container run:
+
+```shell
+root@5fb3ad7073a4:/opt/github-app# smee --url ${SMEE_URL} --path /event_handler --port 3000 &
+[1] 501
+root@5fb3ad7073a4:/opt/github-app# Forwarding https://smee.io/Ch0Kk0wcNDlwqpn to http://127.0.0.1:3000/event_handler
+
+root@5fb3ad7073a4:/opt/github-app# Connected https://smee.io/Ch0Kk0wcNDlwqpn
+
+root@5fb3ad7073a4:/opt/github-app# bundle exec ruby template_server.rb
+/var/lib/gems/2.7.0/gems/sinatra-2.0.4/lib/sinatra/base.rb:1641: warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+/var/lib/gems/2.7.0/gems/mustermann-1.0.3/lib/mustermann.rb:62: warning: The called method `new' is defined here
+/var/lib/gems/2.7.0/gems/mustermann-1.0.3/lib/mustermann/pattern.rb:59: warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+/var/lib/gems/2.7.0/gems/mustermann-1.0.3/lib/mustermann/regular.rb:22: warning: The called method `initialize' is defined here
+/var/lib/gems/2.7.0/gems/sinatra-2.0.4/lib/sinatra/base.rb:1604: warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+/var/lib/gems/2.7.0/gems/sinatra-2.0.4/lib/sinatra/base.rb:1621: warning: The called method `compile!' is defined here
+/var/lib/gems/2.7.0/gems/mustermann-1.0.3/lib/mustermann/pattern.rb:59: warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+/var/lib/gems/2.7.0/gems/mustermann-1.0.3/lib/mustermann/regexp_based.rb:17: warning: The called method `initialize' is defined here
+/var/lib/gems/2.7.0/gems/mustermann-1.0.3/lib/mustermann/ast/compiler.rb:43: warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+/var/lib/gems/2.7.0/gems/mustermann-1.0.3/lib/mustermann/ast/compiler.rb:49: warning: The called method `pattern' is defined here
+/var/lib/gems/2.7.0/gems/faraday-0.15.3/lib/faraday/options.rb:166: warning: Capturing the given block using Proc.new is deprecated; use `&block` instead
+/var/lib/gems/2.7.0/gems/faraday-0.15.3/lib/faraday/options.rb:166: warning: Capturing the given block using Proc.new is deprecated; use `&block` instead
+/var/lib/gems/2.7.0/gems/faraday-0.15.3/lib/faraday/options.rb:166: warning: Capturing the given block using Proc.new is deprecated; use `&block` instead
+/var/lib/gems/2.7.0/gems/faraday-0.15.3/lib/faraday/options.rb:166: warning: Capturing the given block using Proc.new is deprecated; use `&block` instead
+/var/lib/gems/2.7.0/gems/faraday-0.15.3/lib/faraday/options.rb:166: warning: Capturing the given block using Proc.new is deprecated; use `&block` instead
+/var/lib/gems/2.7.0/gems/faraday-0.15.3/lib/faraday/rack_builder.rb:55: warning: Capturing the given block using Proc.new is deprecated; use `&block` instead
+/var/lib/gems/2.7.0/gems/sinatra-2.0.4/lib/sinatra/base.rb:1348: warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+/var/lib/gems/2.7.0/gems/sinatra-2.0.4/lib/sinatra/base.rb:1359: warning: The called method `add_filter' is defined here
+/var/lib/gems/2.7.0/gems/sinatra-2.0.4/lib/sinatra/base.rb:1360: warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+/var/lib/gems/2.7.0/gems/sinatra-2.0.4/lib/sinatra/base.rb:1621: warning: The called method `compile!' is defined here
+[2021-07-31 11:32:04] INFO  WEBrick 1.6.0
+[2021-07-31 11:32:04] INFO  ruby 2.7.0 (2019-12-25) [x86_64-linux-gnu]
+== Sinatra (v2.0.4) has taken the stage on 3000 for development with backup from WEBrick
+[2021-07-31 11:32:04] INFO  WEBrick::HTTPServer#start: pid=512 port=3000
+```
+
+Continue [reading here](https://docs.github.com/en/developers/apps/guides/using-the-github-api-in-your-app) to see how to setup the correct permissions in the App's section on GitHub in order to access issues.
+
+
+
+
+
+
 
 
 
